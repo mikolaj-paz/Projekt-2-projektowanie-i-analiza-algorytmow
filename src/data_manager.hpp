@@ -16,17 +16,19 @@ class DataManager
         template <typename C>
         static void printContainer(const C& container)
         {
+            std::cout << "{ ";
             for (auto & i : container)
                 std::cout << i << ' ';
-            std::cout << std::endl;
+            std::cout << '}' << std::endl;
         }
 
         template <typename C>
         static void printPointerContainer(const C& container)
         {
+            std::cout << "{ ";
             for (auto & i : container)
                 std::cout << *i << ' ';
-            std::cout << std::endl;
+            std::cout << '}' << std::endl;
         }
 
         static void createRandomSimpleUndirectedGraph(GraphADT<int,int>* graph, const int& verticesNumber, const double& density)
