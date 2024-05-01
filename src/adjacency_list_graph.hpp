@@ -5,197 +5,165 @@
 #include <list>
 #include <array>
 #include <iterator>
-#include <iostream>
+#include <memory>
 
 #include "graph.hpp"
 
-template <typename T>
-class AdjacencyListGraph;
+template <typename T, typename W>
+struct AdjacencyListEdge;
 
-template <typename T>
-class AdjacencyListEdge;
-
-template <typename T>
-class AdjacencyListVertex
+template <typename T, typename W>
+struct AdjacencyListVertex : public Vertex<T,W>
 {
-    public:
-        AdjacencyListVertex(const T& element):
-            element{element} {}
+    AdjacencyListVertex(const T& element):
+        Vertex<T,W>(element) {}
 
-        AdjacencyListVertex(const AdjacencyListVertex<T>& other):
-            element{other.element}, iter{other.iter}, I{other.I} {}
+    AdjacencyListVertex(const AdjacencyListVertex<T,W>& other):
+        Vertex<T,W>(other), I{other.I} {}
 
-        AdjacencyListVertex<T>& operator=(const AdjacencyListVertex<T>& other)
-        {
-            if (this == &other)
-                return *this;
-            element = other.element;
-            iter = other.iter;
-            I = other.I;
+    AdjacencyListVertex<T, W>& operator=(const AdjacencyListVertex<T, W>& other)
+    {
+        if (this == &other)
             return *this;
-        }
+        Vertex<T,W>::operator=(other);
+        I = other.I;
+        return *this;
+    }
 
-        friend std::ostream& operator<<(std::ostream& os, const AdjacencyListVertex<T>& obj)
-        {
-            os << obj.element;
-            return os;
-        }
-
-    private:
-        T element;
-        typename std::list<AdjacencyListVertex<T>>::iterator iter;
-
-        std::list<AdjacencyListEdge<T>*> I;
-        
-        friend class AdjacencyListEdge<T>;
-        friend class AdjacencyListGraph<T>;
+    std::list<AdjacencyListEdge<T,W>*> I;
 };
 
-template <typename T>
-class AdjacencyListEdge
+template <typename T, typename W>
+struct AdjacencyListEdge : Edge<T,W>
 {
-    public:
-        AdjacencyListEdge(AdjacencyListVertex<T>& v, AdjacencyListVertex<T>& w, const T& element):
-            element{element}, v{&v}, w{&w}
-        {
-            // v.I.push_back(this);
-            // w.I.push_back(this);
-            // iteratorIv = --(v.I.end());
-            // iteratorIw = --(w.I.end());
-        }
+    AdjacencyListEdge<T,W>(Vertex<T,W>* v, Vertex<T,W>* w, const W& element):
+        Edge<T,W>(v, w, element) {}
 
-        AdjacencyListEdge(const AdjacencyListEdge<T>& other):
-            element{other.element}, v{other.v}, w{other.w},
-            iter{other.iter}, iteratorIv{other.iteratorIv}, iteratorIw{other.iteratorIw} {}
+    AdjacencyListEdge(const AdjacencyListEdge<T,W>& other):
+        Edge<T,W>(other), iteratorIv{other.iteratorIv}, iteratorIw{other.iteratorIw} {}
 
-        AdjacencyListEdge<T>& operator=(const AdjacencyListEdge<T>& other)
-        {
-            if (this == &other)
-                return *this;
-            element = other.element;
-            v = other.v;
-            w = other.w;
-            iter = other.iter;
-            iteratorIv = other.iteratorIv;
-            iteratorIw = other.iteratorIw;
+    AdjacencyListEdge<T, W>& operator=(const AdjacencyListEdge<T, W>& other)
+    {
+        if (this == &other)
             return *this;
-        }
+        Edge<T,W>::operator=(other);
+        iteratorIv = other.iteratorIv;
+        iteratorIw = other.iteratorIw;
+        return *this;
+    }
 
-        friend std::ostream& operator<<(std::ostream& os, const AdjacencyListEdge<T>& obj)
-        {
-            os << obj.element;
-            return os;
-        }
-
-    private:
-        T element;
-        AdjacencyListVertex<T>* v;
-        AdjacencyListVertex<T>* w;
-        
-        typename std::list<AdjacencyListEdge<T>>::iterator iter;
-        typename std::list<AdjacencyListEdge<T>*>::iterator iteratorIv;
-        typename std::list<AdjacencyListEdge<T>*>::iterator iteratorIw;
-
-        friend class AdjacencyListGraph<T>;
+    typename std::list<AdjacencyListEdge<T, W>*>::iterator iteratorIv;
+    typename std::list<AdjacencyListEdge<T, W>*>::iterator iteratorIw;
 };
 
-template <typename T>
-class AdjacencyListGraph
+template <typename T, typename W>
+class AdjacencyListGraph : public GraphADT<T,W>
 {
     private:
-        std::list<AdjacencyListVertex<T>> V;
-        std::list<AdjacencyListEdge<T>> E;
+        typedef std::list<std::unique_ptr<Vertex<T,W>>> VlistType;
+        typedef std::list<std::unique_ptr<Edge<T,W>>> ElistType;
+
+        VlistType V;
+        ElistType E;
 
     public:
-        std::array<AdjacencyListVertex<T>,2> endVertices(const AdjacencyListEdge<T>& e)
-        {
-            std::array<AdjacencyListVertex<T>,2> arr = { *e.v, *e.w };
-            return arr;
-        }
+        const sizeType sizeV() const
+            { return V.size(); }
 
-        AdjacencyListVertex<T>& opposite(const AdjacencyListVertex<T>& v, const AdjacencyListEdge<T>& e)
-            { return e.v == &v ? *e.w : *e.v; }
+        const sizeType sizeE() const
+            { return E.size(); }
 
-        bool areAdjacent(const AdjacencyListVertex<T>& v, const AdjacencyListVertex<T>& w)
+        std::array<Vertex<T,W>*,2> endVertices(const Edge<T,W>* e) const
+            { return std::array<Vertex<T,W>*,2>{ e->v, e->w }; }
+
+        Vertex<T,W>* opposite(const Vertex<T,W>* v, const Edge<T,W>* e) const
+            { return e->v == v ? e->w : e->v; }
+
+        bool areAdjacent(const Vertex<T,W>* v, const Vertex<T,W>* w) const
         {
-            if (v.I.size() < w.I.size())
+            const AdjacencyListVertex<T,W>* vAL = static_cast<const AdjacencyListVertex<T,W>*>(v);
+            const AdjacencyListVertex<T,W>* wAL = static_cast<const AdjacencyListVertex<T,W>*>(w);
+            if (vAL->I.size() < wAL->I.size())
             {
-                for (auto & i : v.I)
-                    if ((*i).v == &w || (*i).w == &w )
+                for (auto & i : vAL->I)
+                    if ((*i).v == w || (*i).w == w )
                         return true;
             }
             else
             {
-                for (auto & i : w.I)
-                    if ((*i).v == &v || (*i).w == &v )
+                for (auto & i : wAL->I)
+                    if ((*i).v == v || (*i).w == v )
                         return true;
             }
             return false;
         }
 
-        void replace(const AdjacencyListVertex<T>& v, const T& x)
-            { v.element = x; }
+        void replace(Vertex<T,W>* const v, const T& x)
+            { v->element = x; }
         
-        void replace(const AdjacencyListEdge<T>& e, const T& x)
-            { e.element = x; }
+        void replace(Edge<T,W>* const e, const T& x)
+            { e->element = x; }
 
-        typename std::list<AdjacencyListVertex<T>>::iterator insertVertex(const T& x)
+        Vertex<T,W>* insertVertex(const T& x)
         {
-            V.push_back(AdjacencyListVertex<T>(x));
-            const auto last = --(V.end());
-            V.back().iter = last;
-            return last;
+            V.push_back(std::unique_ptr<Vertex<T,W>>(new AdjacencyListVertex<T,W>(x)));
+            typename VlistType::iterator last = --(V.end());
+            V.back().get()->iterator = last;
+            return (*last).get();
         }
 
-        typename std::list<AdjacencyListEdge<T>>::iterator insertEdge(AdjacencyListVertex<T>& v, AdjacencyListVertex<T>& w, const T& x)
+        Edge<T,W>* insertEdge(Vertex<T,W>* v, Vertex<T,W>* w, const W& x)
         {
-            E.push_back(AdjacencyListEdge<T>(v, w, x));
-            const auto last = --(E.end());
+            E.push_back(std::unique_ptr<Edge<T,W>>(new AdjacencyListEdge<T,W>(v, w, x)));
+            typename ElistType::iterator last = --(E.end());
 
-            // potrzeba poprawy wizualnej (czytelnosci)
-            E.back().iter = last;
-            E.back().v->I.push_back(&(E.back()));
-            E.back().w->I.push_back(&(E.back()));
-            E.back().iteratorIv = --(E.back().v->I.end());
-            E.back().iteratorIw = --(E.back().w->I.end());
-            return last;
+            AdjacencyListEdge<T,W>* edge = static_cast<AdjacencyListEdge<T,W>*>(E.back().get());
+            edge->iterator = last;
+
+            static_cast<AdjacencyListVertex<T,W>*>(edge->v)->I.push_back(edge);
+            edge->iteratorIv = --(static_cast<AdjacencyListVertex<T,W>*>(edge->v)->I.end());
+
+            static_cast<AdjacencyListVertex<T,W>*>(edge->w)->I.push_back(edge);
+            edge->iteratorIw = --(static_cast<AdjacencyListVertex<T,W>*>(edge->w)->I.end());
+
+            return (*last).get();
         }
 
-        void removeVertex(const AdjacencyListVertex<T>& v)
+        void removeVertex(Vertex<T,W>* const v)
         {
-            for (auto & i : v.I)
-                E.erase(i->iter);
-            V.erase(v.iter);            
+            for (auto & i : static_cast<const AdjacencyListVertex<T,W>* const>(v)->I)
+                removeEdge(i);
+            V.erase(v->iterator);
         }
 
-        void removeEdge(const AdjacencyListEdge<T>& e)
+        void removeEdge(Edge<T,W>* const e)
         {
-            e.v->I.erase(e.iteratorIv);
-            e.w->I.erase(e.iteratorIw);
-            E.erase(e.iter);
+            static_cast<AdjacencyListVertex<T,W>*>(e->v)->I.erase(static_cast<AdjacencyListEdge<T,W>* const>(e)->iteratorIv);
+            static_cast<AdjacencyListVertex<T,W>*>(e->w)->I.erase(static_cast<AdjacencyListEdge<T,W>* const>(e)->iteratorIw);
+            E.erase(e->iterator);
         }
 
-        const std::vector<AdjacencyListEdge<T>> incidentEdges(const AdjacencyListVertex<T>& v) const
+        std::vector<Edge<T,W>*> incidentEdges(const Vertex<T,W>* const v) const
         {
-            std::vector<AdjacencyListEdge<T>> vect;
-            for (auto & iter : v.I)
-                vect.push_back(*iter);
+            std::vector<Edge<T,W>*> vect;
+            for (auto & i : static_cast<const AdjacencyListVertex<T,W>* const>(v)->I)
+                vect.push_back(i);
             return vect;
         }
         
-        const std::vector<AdjacencyListVertex<T>> vertices() const
+        std::vector<Vertex<T,W>*> vertices() const
         {
-            std::vector<AdjacencyListVertex<T>> vect;
-            for (auto & iter : V)
-                vect.push_back(iter);
+            std::vector<Vertex<T,W>*> vect;
+            for (auto & i : V)
+                vect.push_back(i.get());
             return vect;
         }
 
-        const std::vector<AdjacencyListEdge<T>> edges() const
+        std::vector<Edge<T,W>*> edges() const
         {
-            std::vector<AdjacencyListEdge<T>> vect;
-            for (auto & iter : E)
-                vect.push_back(iter);
+            std::vector<Edge<T,W>*> vect;
+            for (auto & i : E)
+                vect.push_back(i.get());
             return vect;
         }
 };
