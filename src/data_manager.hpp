@@ -29,22 +29,25 @@ class DataManager
             std::cout << std::endl;
         }
 
-        static void createRandomGraph(GraphADT<int,int>* graph, const int& verticesNumber, const double& density)
+        static void createRandomSimpleUndirectedGraph(GraphADT<int,int>* graph, const int& verticesNumber, const double& density)
         {
             std::vector<Vertex<int,int>*> vertices;
 
             for (int i = 1; i <= verticesNumber; i++)
                 vertices.push_back(graph->insertVertex(i));
 
-            const int targetEdgesNumber = density / (2 * verticesNumber * verticesNumber - 2 * verticesNumber);
+            const int targetEdgesNumber = density * verticesNumber * (verticesNumber - 1) / 2;
 
-            for (int i = 0; i < verticesNumber; i++)
+            for (int i = 0; i < targetEdgesNumber; i++)
             {
-                int v = getRandomInt(0, verticesNumber - 1);
+                int v;
+                do
+                    v = getRandomInt(0, verticesNumber - 1);
+                while (graph->incidentEdges(vertices[v]).size() == verticesNumber - 1);
                 int w;
                 do
                     w = getRandomInt(0, verticesNumber - 1);
-                while (w == v);
+                while (w == v || graph->areAdjacent(vertices[v], vertices[w]));
                 graph->insertEdge(vertices[v], vertices[w], getRandomInt(0, INT_MAX - 1));
             }
         }
