@@ -21,7 +21,7 @@ struct AdjacencyListVertex : public Vertex<T,W>
     AdjacencyListVertex(const AdjacencyListVertex<T,W>& other):
         Vertex<T,W>(other), I{other.I} {}
 
-    AdjacencyListVertex<T, W>& operator=(const AdjacencyListVertex<T, W>& other)
+    AdjacencyListVertex<T,W>& operator=(const AdjacencyListVertex<T,W>& other)
     {
         if (this == &other)
             return *this;
@@ -94,7 +94,7 @@ class AdjacencyListGraph : public GraphADT<T,W>
         void replace(Vertex<T,W>* const v, const T& x)
             { v->element = x; }
         
-        void replace(Edge<T,W>* const e, const T& x)
+        void replace(Edge<T,W>* const e, const W& x)
             { e->element = x; }
 
         Vertex<T,W>* insertVertex(const T& x)
