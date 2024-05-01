@@ -51,7 +51,7 @@ struct AdjacencyMatrixVertex : public Vertex<T,W>
 };
 
 template <typename T, typename W>
-class AdjacencyMatrixEdge : public Edge<T,W>
+struct AdjacencyMatrixEdge : public Edge<T,W>
 {
     public:
         AdjacencyMatrixEdge(Vertex<T,W>* v, Vertex<T,W>* w, const W& element):
@@ -87,8 +87,7 @@ class AdjacencyMatrixGraph : public GraphADT<T,W>
 
         bool areAdjacent(const Vertex<T,W>* v, const Vertex<T,W>* w) const
         {
-            if (A[_amg_cvertex_ptr(v)->Aindex]
-                 [_amg_cvertex_ptr(w)->Aindex]) 
+            if (A[_amg_cvertex_ptr(v)->Aindex][_amg_cvertex_ptr(w)->Aindex]) 
                 return true;
             return false;
         }
@@ -106,7 +105,7 @@ class AdjacencyMatrixGraph : public GraphADT<T,W>
             V.back().get()->iterator = last;
             for (int i = 0; i < A.size(); i++)
                 A[i].push_back(nullptr);
-            static_cast<AdjacencyMatrixVertex<T,W>*>(V.back().get())->Aindex = A.size();
+            _amg_vertex_ptr(V.back().get())->Aindex = A.size();
             A.push_back(std::vector<Edge<T,W>*>(A.size() + 1, nullptr));
             return (*last).get();
         }

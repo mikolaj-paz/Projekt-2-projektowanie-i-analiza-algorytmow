@@ -9,6 +9,22 @@
 
 #include "graph.hpp"
 
+#ifndef _alg_vertex_ptr
+#define _alg_vertex_ptr static_cast<AdjacencyListVertex<T,W>*>
+#endif
+
+#ifndef _alg_cvertex_ptr
+#define _alg_cvertex_ptr static_cast<const AdjacencyListVertex<T,W>*>
+#endif
+
+#ifndef _alg_vertex_cptr
+#define _alg_vertex_cptr static_cast<AdjacencyListVertex<T,W>* const>
+#endif
+
+#ifndef _alg_cvertex_cptr
+#define _alg_cvertex_cptr static_cast<const AdjacencyListVertex<T,W>* const>
+#endif
+
 template <typename T, typename W>
 struct AdjacencyListEdge;
 
@@ -74,8 +90,8 @@ class AdjacencyListGraph : public GraphADT<T,W>
 
         bool areAdjacent(const Vertex<T,W>* v, const Vertex<T,W>* w) const
         {
-            const AdjacencyListVertex<T,W>* vAL = static_cast<const AdjacencyListVertex<T,W>*>(v);
-            const AdjacencyListVertex<T,W>* wAL = static_cast<const AdjacencyListVertex<T,W>*>(w);
+            const AdjacencyListVertex<T,W>* vAL = _alg_cvertex_ptr(v);
+            const AdjacencyListVertex<T,W>* wAL = _alg_cvertex_ptr(w);
             if (vAL->I.size() < wAL->I.size())
             {
                 for (auto & i : vAL->I)
@@ -113,33 +129,33 @@ class AdjacencyListGraph : public GraphADT<T,W>
             AdjacencyListEdge<T,W>* edge = static_cast<AdjacencyListEdge<T,W>*>(E.back().get());
             edge->iterator = last;
 
-            static_cast<AdjacencyListVertex<T,W>*>(edge->v)->I.push_back(edge);
-            edge->iteratorIv = --(static_cast<AdjacencyListVertex<T,W>*>(edge->v)->I.end());
+            _alg_vertex_ptr(edge->v)->I.push_back(edge);
+            edge->iteratorIv = --(_alg_vertex_ptr(edge->v)->I.end());
 
-            static_cast<AdjacencyListVertex<T,W>*>(edge->w)->I.push_back(edge);
-            edge->iteratorIw = --(static_cast<AdjacencyListVertex<T,W>*>(edge->w)->I.end());
+            _alg_vertex_ptr(edge->w)->I.push_back(edge);
+            edge->iteratorIw = --(_alg_vertex_ptr(edge->w)->I.end());
 
             return (*last).get();
         }
 
         void removeVertex(Vertex<T,W>* const v)
         {
-            for (auto & i : static_cast<const AdjacencyListVertex<T,W>* const>(v)->I)
+            for (auto & i : _alg_cvertex_cptr(v)->I)
                 removeEdge(i);
             V.erase(v->iterator);
         }
 
         void removeEdge(Edge<T,W>* const e)
         {
-            static_cast<AdjacencyListVertex<T,W>*>(e->v)->I.erase(static_cast<AdjacencyListEdge<T,W>* const>(e)->iteratorIv);
-            static_cast<AdjacencyListVertex<T,W>*>(e->w)->I.erase(static_cast<AdjacencyListEdge<T,W>* const>(e)->iteratorIw);
+            _alg_vertex_ptr(e->v)->I.erase(_alg_vertex_cptr(e)->iteratorIv);
+            _alg_vertex_ptr(e->w)->I.erase(_alg_vertex_cptr(e)->iteratorIw);
             E.erase(e->iterator);
         }
 
         std::vector<Edge<T,W>*> incidentEdges(const Vertex<T,W>* const v) const
         {
             std::vector<Edge<T,W>*> vect;
-            for (auto & i : static_cast<const AdjacencyListVertex<T,W>* const>(v)->I)
+            for (auto & i : _alg_cvertex_cptr(v)->I)
                 vect.push_back(i);
             return vect;
         }
