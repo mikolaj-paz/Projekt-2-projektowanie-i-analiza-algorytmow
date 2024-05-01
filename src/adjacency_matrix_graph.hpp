@@ -5,192 +5,182 @@
 #include <list>
 #include <array>
 #include <iterator>
-#include <iostream>
+#include <memory>
 
 #include "graph.hpp"
 
-template <typename T>
-class AdjacencyMatrixGraph;
+#ifndef _amg_vertex_ptr
+#define _amg_vertex_ptr static_cast<AdjacencyMatrixVertex<T,W>*>
+#endif
 
-template <typename T>
-class AdjacencyMatrixEdge;
+#ifndef _amg_cvertex_ptr
+#define _amg_cvertex_ptr static_cast<const AdjacencyMatrixVertex<T,W>*>
+#endif
 
-template <typename T>
-class AdjacencyMatrixVertex
+#ifndef _amg_vertex_cptr
+#define _amg_vertex_cptr static_cast<AdjacencyMatrixVertex<T,W>* const>
+#endif
+
+#ifndef _amg_cvertex_cptr
+#define _amg_cvertex_cptr static_cast<const AdjacencyMatrixVertex<T,W>* const>
+#endif
+
+template <typename T, typename W>
+struct AdjacencyMatrixEdge;
+
+template <typename T, typename W>
+struct AdjacencyMatrixVertex : public Vertex<T,W>
 {
     public:
         AdjacencyMatrixVertex(const T& element):
-            element{element} {}
+            Vertex<T,W>(element) {}
 
-        AdjacencyMatrixVertex(const AdjacencyMatrixVertex<T>& other):
-            element{other.element}, iter{other.iter}, Aindex{other.Aindex} {}
+        AdjacencyMatrixVertex(const AdjacencyMatrixVertex<T,W>& other):
+            Vertex<T,W>(other), Aindex{other.Aindex} {}
 
-        AdjacencyMatrixVertex<T>& operator=(const AdjacencyMatrixVertex<T>& other)
+        AdjacencyMatrixVertex<T,W>& operator=(const AdjacencyMatrixVertex<T,W>& other)
         {
             if (this == &other)
                 return *this;
-            element = other.element;
-            iter = other.iter;
+            Vertex<T,W>::operator=(other);
             Aindex = other.Aindex;
             return *this;
         }
-
-        friend std::ostream& operator<<(std::ostream& os, const AdjacencyMatrixVertex<T>& obj)
-        {
-            os << obj.element;
-            return os;
-        }
-
-    private:
-        T element;
-        typename std::list<AdjacencyMatrixVertex<T>>::iterator iter;
         
-        int Aindex;
-        
-        friend class AdjacencyMatrixEdge<T>;
-        friend class AdjacencyMatrixGraph<T>;
+        sizeType Aindex;
 };
 
-template <typename T>
-class AdjacencyMatrixEdge
+template <typename T, typename W>
+class AdjacencyMatrixEdge : public Edge<T,W>
 {
     public:
-        AdjacencyMatrixEdge(AdjacencyMatrixVertex<T>& v, AdjacencyMatrixVertex<T>& w, const T& element):
-            element{element}, v{&v}, w{&w} {}
+        AdjacencyMatrixEdge(Vertex<T,W>* v, Vertex<T,W>* w, const W& element):
+            Edge<T,W>(v, w, element) {}
 
-        AdjacencyMatrixEdge(const AdjacencyMatrixEdge<T>& other):
-            element{other.element}, v{other.v}, w{other.w}, iter{other.iter} {}
+        AdjacencyMatrixEdge(const AdjacencyMatrixEdge<T,W>& other):
+            Edge<T,W>(other) {}
 
-        AdjacencyMatrixEdge<T>& operator=(const AdjacencyMatrixEdge<T>& other)
+        AdjacencyMatrixEdge<T,W>& operator=(const AdjacencyMatrixEdge<T,W>& other)
         {
             if (this == &other)
                 return *this;
-            element = other.element;
-            v = other.v;
-            w = other.w;
-            iter = other.iter;
+            Edge<T,W>::operator=(other);
             return *this;
         }
-
-        friend std::ostream& operator<<(std::ostream& os, const AdjacencyMatrixEdge<T>& obj)
-        {
-            os << obj.element;
-            return os;
-        }
-
-    private:
-        T element;
-        AdjacencyMatrixVertex<T>* v;
-        AdjacencyMatrixVertex<T>* w;
-        
-        typename std::list<AdjacencyMatrixEdge<T>>::iterator iter;
-
-        friend class AdjacencyMatrixGraph<T>;
 };
 
-template <typename T>
-class AdjacencyMatrixGraph
+template <typename T, typename W>
+class AdjacencyMatrixGraph : public GraphADT<T,W>
 {
-    private:
-        std::list<AdjacencyMatrixVertex<T>> V;
-        std::list<AdjacencyMatrixEdge<T>> E;
-        std::vector<std::vector<AdjacencyMatrixEdge<T>*>> A;
-
     public:
-        std::array<AdjacencyMatrixVertex<T>,2> endVertices(const AdjacencyMatrixEdge<T>& e)
-        {
-            std::array<AdjacencyMatrixVertex<T>,2> arr = { *e.v, *e.w };
-            return arr;
-        }
+        const sizeType sizeV() const
+            { return V.size(); }
 
-        AdjacencyMatrixVertex<T>& opposite(const AdjacencyMatrixVertex<T>& v, const AdjacencyMatrixEdge<T>& e)
-            { return e.v == &v ? *e.w : *e.v; }
+        const sizeType sizeE() const
+            { return E.size(); }
 
-        bool areAdjacent(const AdjacencyMatrixVertex<T>& v, const AdjacencyMatrixVertex<T>& w)
+        std::array<Vertex<T,W>*,2> endVertices(const Edge<T,W>* e) const
+            { return std::array<Vertex<T,W>*,2>{ e->v, e->w }; }
+
+        Vertex<T,W>* opposite(const Vertex<T,W>* v, const Edge<T,W>* e) const
+            { return e->v == v ? e->w : e->v; }
+
+        bool areAdjacent(const Vertex<T,W>* v, const Vertex<T,W>* w) const
         {
-            if (A[v.Aindex][w.Aindex]) return true;
+            if (A[_amg_cvertex_ptr(v)->Aindex]
+                 [_amg_cvertex_ptr(w)->Aindex]) 
+                return true;
             return false;
         }
 
-        void replace(const AdjacencyMatrixVertex<T>& v, const T& x)
-            { v.element = x; }
+        void replace(Vertex<T,W>* const v, const T& x)
+            { v->element = x; }
         
-        void replace(const AdjacencyMatrixEdge<T>& e, const T& x)
-            { e.element = x; }
+        void replace(Edge<T,W>* const e, const W& x)
+            { e->element = x; }
 
-        typename std::list<AdjacencyMatrixVertex<T>>::iterator insertVertex(const T& x)
+        Vertex<T,W>* insertVertex(const T& x)
         {
-            V.push_back(AdjacencyMatrixVertex<T>(x));
-            const auto last = --(V.end());
-            V.back().iter = last;
-            // std::cout <<  - 1 << std::endl;
+            V.push_back(std::unique_ptr<Vertex<T,W>>(new AdjacencyListVertex<T,W>(x)));
+            typename VlistType::iterator last = --(V.end());
+            V.back().get()->iterator = last;
             for (int i = 0; i < A.size(); i++)
                 A[i].push_back(nullptr);
-            V.back().Aindex = A.size();
-            A.push_back(std::vector<AdjacencyMatrixEdge<T>*>(A.size() + 1, nullptr));
-            return last;
+            static_cast<AdjacencyMatrixVertex<T,W>*>(V.back().get())->Aindex = A.size();
+            A.push_back(std::vector<Edge<T,W>*>(A.size() + 1, nullptr));
+            return (*last).get();
         }
 
-        typename std::list<AdjacencyMatrixEdge<T>>::iterator insertEdge(AdjacencyMatrixVertex<T>& v, AdjacencyMatrixVertex<T>& w, const T& x)
+        Edge<T,W>* insertEdge(Vertex<T,W>* v, Vertex<T,W>* w, const W& x)
         {
-            E.push_back(AdjacencyMatrixEdge<T>(v, w, x));
-            const auto last = --(E.end());
-            E.back().iter = last;
-            A[v.Aindex][w.Aindex] = &(E.back());
-            A[w.Aindex][v.Aindex] = &(E.back());
-            return last;
+            E.push_back(std::unique_ptr<Edge<T,W>>(new AdjacencyListEdge<T,W>(v, w, x)));
+            typename ElistType::iterator last = --(E.end());
+            E.back().get()->iterator = last;
+            A[_amg_vertex_ptr(v)->Aindex][_amg_vertex_ptr(w)->Aindex] = E.back().get();
+            A[_amg_vertex_ptr(w)->Aindex][_amg_vertex_ptr(v)->Aindex] = E.back().get();
+             return (*last).get();
         }
 
-        void removeVertex(AdjacencyMatrixVertex<T>& v)
+        void removeVertex(Vertex<T,W>* const v)
         {
+            AdjacencyMatrixVertex<T,W>* const vAM = _amg_vertex_cptr(v);
+
             // Porzadkowanie indeksow
-            int newIndex = v.Aindex;
-            for (auto & i = ++(v.iter); i != V.end(); i++)
-                std::swap(newIndex, (*i).Aindex);
+            sizeType* newIndex = &vAM->Aindex;
+            for (auto & i = ++(v->iterator); i != V.end(); i++)
+                std::swap(*newIndex, _amg_vertex_ptr(i->get())->Aindex);
 
             // Usuwanie wpisow krawedzi incydentnych z listy krawedzi
-            for (auto & iter : A[v.Aindex])
-                if (iter) E.erase((*iter).iter);
+            for (auto & i : A[vAM->Aindex])
+                if (i) E.erase(i->iterator);
 
             // Czyszczenie macierzy
-            A.erase(A.begin() + v.Aindex);
+            A.erase(A.begin() + vAM->Aindex);
             for (auto & i : A)
-                i.erase(i.begin() + v.Aindex); 
+                i.erase(i.begin() + vAM->Aindex);
 
             // Usuwanie wpisu wierzcholka z listy wierzcholkow
-            V.erase(--(v.iter));
+            V.erase(--(v->iterator));
         }
 
-        void removeEdge(const AdjacencyMatrixEdge<T>& e)
+        void removeEdge(Edge<T,W>* const e)
         {
-            A[e.v->Aindex][e.w->Aindex] = nullptr;
-            A[e.w->Aindex][e.v->Aindex] = nullptr;
-            E.erase(e.iter);
+            A[_amg_vertex_cptr(e->v)->Aindex][_amg_vertex_cptr(e->w)->Aindex] = nullptr;
+            A[_amg_vertex_cptr(e->w)->Aindex][_amg_vertex_cptr(e->v)->Aindex] = nullptr;
+            E.erase(e->iterator);
         }
 
-        const std::vector<AdjacencyMatrixEdge<T>> incidentEdges(const AdjacencyMatrixVertex<T>& v) const
+        std::vector<Edge<T,W>*> incidentEdges(const Vertex<T,W>* const v) const
         {
-            std::vector<AdjacencyMatrixEdge<T>> vect;
-            for (auto & iter : A[v.Aindex])
-                if (iter) vect.push_back(*iter);
+            std::vector<Edge<T,W>*> vect;
+            for (auto & i : A[_amg_cvertex_cptr(v)->Aindex])
+                if (i) vect.push_back(i);
             return vect;
         }
         
-        const std::vector<AdjacencyMatrixVertex<T>> vertices() const
+        std::vector<Vertex<T,W>*> vertices() const
         {
-            std::vector<AdjacencyMatrixVertex<T>> vect;
-            for (auto & iter : V)
-                vect.push_back(iter);
+            std::vector<Vertex<T,W>*> vect;
+            for (auto & i : V)
+                vect.push_back(i.get());
             return vect;
         }
 
-        const std::vector<AdjacencyMatrixEdge<T>> edges() const
+        std::vector<Edge<T,W>*> edges() const
         {
-            std::vector<AdjacencyMatrixEdge<T>> vect;
-            for (auto & iter : E)
-                vect.push_back(iter);
+            std::vector<Edge<T,W>*> vect;
+            for (auto & i : E)
+                vect.push_back(i.get());
             return vect;
         }
+
+    private:
+        typedef std::list<std::unique_ptr<Vertex<T,W>>> VlistType;
+        typedef std::list<std::unique_ptr<Edge<T,W>>> ElistType;
+
+        VlistType V;
+        ElistType E;
+        std::vector<std::vector<Edge<T,W>*>> A;
 };
 
 #endif
