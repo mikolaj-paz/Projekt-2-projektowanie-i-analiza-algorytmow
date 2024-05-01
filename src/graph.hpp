@@ -62,11 +62,13 @@ class GraphADT
 {
     public:
         // Metody dostepu
+        virtual const sizeType sizeV() const = 0;
+        virtual const sizeType sizeE() const = 0;
         virtual std::array<Vertex<T,W>*,2> endVertices(const Edge<T,W>* e) const = 0;
         virtual Vertex<T,W>* opposite(const Vertex<T,W>* v, const Edge<T,W>* e) const = 0;
         virtual bool areAdjacent(const Vertex<T,W>* v, const Vertex<T,W>* w) const = 0;
         virtual void replace(Vertex<T,W>* const v, const T& x) = 0;
-        virtual void replace(Edge<T,W>* const e, const T& x) = 0;
+        virtual void replace(Edge<T,W>* const e, const W& x) = 0;
         
         // Metody uaktualniajace
         virtual Vertex<T,W>* insertVertex(const T& x) = 0;
