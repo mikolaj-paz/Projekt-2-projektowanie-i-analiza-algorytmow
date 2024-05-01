@@ -59,13 +59,6 @@ struct AdjacencyListEdge : Edge<T,W>
 template <typename T, typename W>
 class AdjacencyListGraph : public GraphADT<T,W>
 {
-    private:
-        typedef std::list<std::unique_ptr<Vertex<T,W>>> VlistType;
-        typedef std::list<std::unique_ptr<Edge<T,W>>> ElistType;
-
-        VlistType V;
-        ElistType E;
-
     public:
         const sizeType sizeV() const
             { return V.size(); }
@@ -166,6 +159,13 @@ class AdjacencyListGraph : public GraphADT<T,W>
                 vect.push_back(i.get());
             return vect;
         }
+
+    private:
+        typedef std::list<std::unique_ptr<Vertex<T,W>>> VlistType;
+        typedef std::list<std::unique_ptr<Edge<T,W>>> ElistType;
+
+        VlistType V;
+        ElistType E;
 };
 
 #endif
