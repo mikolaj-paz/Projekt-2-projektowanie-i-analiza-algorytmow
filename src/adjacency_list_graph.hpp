@@ -1,3 +1,6 @@
+#ifndef ADJACENCY_LIST_GRAPH_HPP
+#define ADJACENCY_LIST_GRAPH_HPP
+
 #include <vector>
 #include <list>
 #include <array>
@@ -196,3 +199,5 @@ class AdjacencyListGraph
             return vect;
         }
 };
+
+#endif
