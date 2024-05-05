@@ -1,43 +1,24 @@
 #include <iostream>
+#include <chrono>
 
+#include "data_manager.hpp"
 #include "adjacency_list_graph.hpp"
 #include "adjacency_matrix_graph.hpp"
-
-template <typename C>
-void printContainer(const C& container)
-{
-    for (auto & i : container)
-        std::cout << i << ' ';
-    std::cout << std::endl;
-}
+#include "dijkstra_algorithm.hpp"
 
 int main()
 {
-    AdjacencyMatrixGraph<int> graph;
+    const int N[5] { 10, 50, 100, 500, 1000 };
+    const double D[4] { .25, .5, .75, 1 };
 
-    auto v = graph.insertVertex(3);
-    auto w = graph.insertVertex(4);
+    AdjacencyListGraph<int,int> ALgraph;
+    AdjacencyMatrixGraph<int,int> AMgraph;
+    
+    auto ALtab = DataManager::createTimesTable(&ALgraph, N, 5, D, 4);
+    DataManager::saveToCSV("../AL_data.csv", ALtab, 5, 6, ';');
 
-    graph.insertEdge(*v, *w, 5);
-
-    auto vertices = graph.vertices();
-    printContainer(vertices);
-
-    auto edges = graph.edges();
-    printContainer(edges);
-
-    auto endVert = graph.endVertices(edges[0]);
-    printContainer(endVert);
-
-    auto incidEdg = graph.incidentEdges(vertices[0]);
-    printContainer(incidEdg);
-
-    std::cout << graph.areAdjacent(*v, *w) << std::endl;
-    std::cout << graph.opposite(*w, edges[0]) << std::endl;
-
-    graph.removeVertex(*v);
-
-    std::cout << graph.vertices().size() << ' ' << graph.edges().size() << std::endl;
+    auto AMtab = DataManager::createTimesTable(&AMgraph, N, 5, D, 4);
+    DataManager::saveToCSV("../AM_data.csv", AMtab, 5, 6, ';');
 
     return 0;
 }
