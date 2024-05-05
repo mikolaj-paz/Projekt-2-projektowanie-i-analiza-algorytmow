@@ -12,17 +12,20 @@ typedef std::size_t sizeType;
 template <typename T, typename W>
 struct Vertex
 {
-    typedef typename std::list<std::unique_ptr<Vertex<T,W>>>::iterator Viterator;
+    // typedef typename std::list<std::unique_ptr<Vertex<T,W>>>::iterator Viterator;
     Vertex(const T& element): element{element} {}
-    Vertex(const Vertex<T,W>& other): element{other.element}, iterator{other.iterator} {}
+    // Vertex(const Vertex<T,W>& other): element{other.element}, iterator{other.iterator} {}
+    Vertex(const Vertex<T,W>& other): element{other.element}, i{other.i} {}
     Vertex<T,W>& operator=(const Vertex<T,W>& other) 
     { 
         element = other.element;
-        iterator = other.iterator;
+        // iterator = other.iterator;
+        i = other.i;
         return *this;
     }
     T element;
-    Viterator iterator;
+    // Viterator iterator;
+    sizeType i;
 
     friend std::ostream& operator<<(std::ostream& os, const Vertex<T, W>& obj)
     {
@@ -34,25 +37,28 @@ struct Vertex
 template <typename T, typename W>
 struct Edge
 {
-    typedef typename std::list<std::unique_ptr<Edge<T,W>>>::iterator Eiterator;
+    // typedef typename std::list<std::unique_ptr<Edge<T,W>>>::iterator Eiterator;
     Edge(Vertex<T,W>* v, Vertex<T,W>* w, const W& element): element{element}, v{v}, w{w} {}
-    Edge(const Edge<T,W>& other): element{other.element}, v{other.v}, w{other.w}, iterator{other.iterator} {}
+    // Edge(const Edge<T,W>& other): element{other.element}, v{other.v}, w{other.w}, iterator{other.iterator} {}
+    Edge(const Edge<T,W>& other): element{other.element}, v{other.v}, w{other.w}, i{other.i} {}
     Edge<T,W>& operator=(const Edge<T,W>& other) 
     {
         element = other.element;
         v = other.v,
         w = other.w;
-        iterator = other.iterator;
+        // iterator = other.iterator;
+        i = other.i;
         return *this;
     }
     W element;
     Vertex<T,W>* v;
     Vertex<T,W>* w;
-    Eiterator iterator;
+    // Eiterator iterator;
+    sizeType i;
 
     friend std::ostream& operator<<(std::ostream& os, const Edge<T, W>& obj)
     {
-        os << obj.element;
+        os << obj.v->element << "--" << obj.element << "--" << obj.w->element;
         return os;
     }
 };
@@ -75,6 +81,7 @@ class GraphADT
         virtual Edge<T,W>* insertEdge(Vertex<T,W>* v, Vertex<T,W>* w, const W& x) = 0;
         virtual void removeVertex(Vertex<T,W>* const v) = 0;
         virtual void removeEdge(Edge<T,W>* const e) = 0;
+        virtual void clear() = 0;
 
         // Metody iterujace
         virtual std::vector<Edge<T,W>*> incidentEdges(const Vertex<T,W>* const v) const = 0;

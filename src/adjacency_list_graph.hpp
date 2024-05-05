@@ -25,6 +25,10 @@
 #define _alg_cvertex_cptr static_cast<const AdjacencyListVertex<T,W>* const>
 #endif
 
+#ifndef _alg_edge_cptr
+#define _alg_edge_cptr static_cast<AdjacencyListEdge<T,W>* const>
+#endif
+
 template <typename T, typename W>
 struct AdjacencyListEdge;
 
@@ -76,6 +80,12 @@ template <typename T, typename W>
 class AdjacencyListGraph : public GraphADT<T,W>
 {
     public:
+        void clear()
+        {
+            V.clear();
+            E.clear();
+        }
+
         const sizeType sizeV() const
             { return V.size(); }
 
@@ -116,18 +126,23 @@ class AdjacencyListGraph : public GraphADT<T,W>
         Vertex<T,W>* insertVertex(const T& x)
         {
             V.push_back(std::unique_ptr<Vertex<T,W>>(new AdjacencyListVertex<T,W>(x)));
-            typename VlistType::iterator last = --(V.end());
-            V.back().get()->iterator = last;
-            return (*last).get();
+            // typename VlistType::iterator last = --(V.end());
+            // V.back().get()->iterator = last;
+            sizeType last = V.size() - 1;
+            V.back().get()->i = last;
+            // return (*last).get();
+            return V[last].get();
         }
 
         Edge<T,W>* insertEdge(Vertex<T,W>* v, Vertex<T,W>* w, const W& x)
         {
             E.push_back(std::unique_ptr<Edge<T,W>>(new AdjacencyListEdge<T,W>(v, w, x)));
-            typename ElistType::iterator last = --(E.end());
+            // typename ElistType::iterator last = --(E.end());
+            sizeType last = E.size() - 1;
 
             AdjacencyListEdge<T,W>* edge = static_cast<AdjacencyListEdge<T,W>*>(E.back().get());
-            edge->iterator = last;
+            // edge->iterator = last;
+            edge->i = last;
 
             _alg_vertex_ptr(edge->v)->I.push_back(edge);
             edge->iteratorIv = --(_alg_vertex_ptr(edge->v)->I.end());
@@ -135,21 +150,38 @@ class AdjacencyListGraph : public GraphADT<T,W>
             _alg_vertex_ptr(edge->w)->I.push_back(edge);
             edge->iteratorIw = --(_alg_vertex_ptr(edge->w)->I.end());
 
-            return (*last).get();
+            // return (*last).get();
+            return E[last].get();
         }
 
         void removeVertex(Vertex<T,W>* const v)
         {
+            // Usuwanie krawędzi incydentnych
             for (auto & i : _alg_cvertex_cptr(v)->I)
                 removeEdge(i);
-            V.erase(v->iterator);
+
+            // Porzadkowanie indeksow
+            sizeType* newIndex = &v->i;
+            for (sizeType i = v->i; i < V.size(); i++)
+                std::swap(*newIndex, V[i].get()->i);
+
+            // Usuwanie wpisu wierchołka z listy wierzchołków
+            // V.erase(v->iterator);
+            V.erase(V.begin() + v->i);
         }
 
         void removeEdge(Edge<T,W>* const e)
         {
-            _alg_vertex_ptr(e->v)->I.erase(_alg_vertex_cptr(e)->iteratorIv);
-            _alg_vertex_ptr(e->w)->I.erase(_alg_vertex_cptr(e)->iteratorIw);
-            E.erase(e->iterator);
+            _alg_vertex_ptr(e->v)->I.erase(_alg_edge_cptr(e)->iteratorIv);
+            _alg_vertex_ptr(e->w)->I.erase(_alg_edge_cptr(e)->iteratorIw);
+
+            // Porzadkowanie indeksow
+            sizeType* newIndex = &e->i;
+            for (sizeType i = e->i; i < V.size(); i++)
+                std::swap(*newIndex, E[i].get()->i);
+
+            // E.erase(e->iterator);
+            E.erase(E.begin() + e->i);
         }
 
         std::vector<Edge<T,W>*> incidentEdges(const Vertex<T,W>* const v) const
@@ -177,8 +209,10 @@ class AdjacencyListGraph : public GraphADT<T,W>
         }
 
     private:
-        typedef std::list<std::unique_ptr<Vertex<T,W>>> VlistType;
-        typedef std::list<std::unique_ptr<Edge<T,W>>> ElistType;
+        // typedef std::list<std::unique_ptr<Vertex<T,W>>> VlistType;
+        // typedef std::list<std::unique_ptr<Edge<T,W>>> ElistType;
+        typedef std::vector<std::unique_ptr<Vertex<T,W>>> VlistType;
+        typedef std::vector<std::unique_ptr<Edge<T,W>>> ElistType;
 
         VlistType V;
         ElistType E;

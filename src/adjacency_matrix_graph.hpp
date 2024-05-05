@@ -73,6 +73,13 @@ template <typename T, typename W>
 class AdjacencyMatrixGraph : public GraphADT<T,W>
 {
     public:
+        void clear()
+        {
+            V.clear();
+            E.clear();
+            A.clear();
+        }
+
         const sizeType sizeV() const
             { return V.size(); }
 
@@ -101,23 +108,29 @@ class AdjacencyMatrixGraph : public GraphADT<T,W>
         Vertex<T,W>* insertVertex(const T& x)
         {
             V.push_back(std::unique_ptr<Vertex<T,W>>(new AdjacencyListVertex<T,W>(x)));
-            typename VlistType::iterator last = --(V.end());
-            V.back().get()->iterator = last;
+            // typename VlistType::iterator last = --(V.end());
+            // V.back().get()->iterator = last;
+            sizeType last = V.size() - 1;
+            V.back().get()->i = last;
             for (int i = 0; i < A.size(); i++)
                 A[i].push_back(nullptr);
             _amg_vertex_ptr(V.back().get())->Aindex = A.size();
             A.push_back(std::vector<Edge<T,W>*>(A.size() + 1, nullptr));
-            return (*last).get();
+            // return (*last).get();
+            return V[last].get();
         }
 
         Edge<T,W>* insertEdge(Vertex<T,W>* v, Vertex<T,W>* w, const W& x)
         {
             E.push_back(std::unique_ptr<Edge<T,W>>(new AdjacencyListEdge<T,W>(v, w, x)));
-            typename ElistType::iterator last = --(E.end());
-            E.back().get()->iterator = last;
+            // typename ElistType::iterator last = --(E.end());
+            // E.back().get()->iterator = last;
+            sizeType last = E.size() - 1;
+            E.back().get()->i = last;
             A[_amg_vertex_ptr(v)->Aindex][_amg_vertex_ptr(w)->Aindex] = E.back().get();
             A[_amg_vertex_ptr(w)->Aindex][_amg_vertex_ptr(v)->Aindex] = E.back().get();
-             return (*last).get();
+            //  return (*last).get();
+             return E[last].get();
         }
 
         void removeVertex(Vertex<T,W>* const v)
@@ -126,12 +139,18 @@ class AdjacencyMatrixGraph : public GraphADT<T,W>
 
             // Porzadkowanie indeksow
             sizeType* newIndex = &vAM->Aindex;
-            for (auto & i = ++(v->iterator); i != V.end(); i++)
-                std::swap(*newIndex, _amg_vertex_ptr(i->get())->Aindex);
+            // for (auto & i = ++(v->iterator); i != V.end(); i++)
+            //     std::swap(*newIndex, _amg_vertex_ptr(i->get())->Aindex);
+            for (sizeType i = v->i; i < V.size(); i++)
+            {
+                std::swap(*newIndex, _amg_vertex_ptr(V[i].get())->Aindex);
+                std::swap(*newIndex, V[i].get()->i);
+            }
 
             // Usuwanie wpisow krawedzi incydentnych z listy krawedzi
             for (auto & i : A[vAM->Aindex])
-                if (i) E.erase(i->iterator);
+                // if (i) E.erase(i->iterator);
+                if (i) E.erase(E.begin() + i->i);
 
             // Czyszczenie macierzy
             A.erase(A.begin() + vAM->Aindex);
@@ -139,14 +158,22 @@ class AdjacencyMatrixGraph : public GraphADT<T,W>
                 i.erase(i.begin() + vAM->Aindex);
 
             // Usuwanie wpisu wierzcholka z listy wierzcholkow
-            V.erase(--(v->iterator));
+            // V.erase(--(v->iterator));
+            V.erase(V.begin() + v->i);
         }
 
         void removeEdge(Edge<T,W>* const e)
         {
             A[_amg_vertex_cptr(e->v)->Aindex][_amg_vertex_cptr(e->w)->Aindex] = nullptr;
             A[_amg_vertex_cptr(e->w)->Aindex][_amg_vertex_cptr(e->v)->Aindex] = nullptr;
-            E.erase(e->iterator);
+
+            // Porzadkowanie indeksow
+            sizeType* newIndex = &e->i;
+            for (sizeType i = e->i; i < V.size(); i++)
+                std::swap(*newIndex, E[i].get()->i);
+
+            // E.erase(e->iterator);
+            E.erase(E.begin() + e->i);
         }
 
         std::vector<Edge<T,W>*> incidentEdges(const Vertex<T,W>* const v) const
@@ -174,8 +201,10 @@ class AdjacencyMatrixGraph : public GraphADT<T,W>
         }
 
     private:
-        typedef std::list<std::unique_ptr<Vertex<T,W>>> VlistType;
-        typedef std::list<std::unique_ptr<Edge<T,W>>> ElistType;
+        // typedef std::list<std::unique_ptr<Vertex<T,W>>> VlistType;
+        // typedef std::list<std::unique_ptr<Edge<T,W>>> ElistType;
+        typedef std::vector<std::unique_ptr<Vertex<T,W>>> VlistType;
+        typedef std::vector<std::unique_ptr<Edge<T,W>>> ElistType;
 
         VlistType V;
         ElistType E;
