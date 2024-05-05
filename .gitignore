@@ -71,3 +71,9 @@ test.txt
 **/nls.*.json
 **/*.nls.json
 **/*.nls.*.json
+
+# VSCode data
+.vscode/
+
+# Data
+*.csv
