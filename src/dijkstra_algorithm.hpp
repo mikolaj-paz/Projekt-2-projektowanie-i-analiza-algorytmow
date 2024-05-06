@@ -5,58 +5,62 @@
 #include <queue>
 #include <map>
 
+#include <chrono>
+
 #include "graph.hpp"
-#include "data_manager.hpp"
+
+#ifndef TIME_POINT
+#define TIME_POINT std::chrono::high_resolution_clock::now()
+#endif
 
 class DijkstraAlgorithm
 {
-    private:
-        // template <typename T>
-        // class Greater
-        // {
-        //     public:
-        //         bool operator()(const std::pair<Vertex<T,int>*,int>& l, const std::pair<Vertex<T,int>*,int>& r) const 
-        //             { return l.second > r.second; }
-        // };
-
     public:
         DijkstraAlgorithm() = delete;
 
-        // template <typename T>
-        // static std::map<Vertex<T,int>*,int> shortestPath(const GraphADT<T,int>* graph, const Vertex<T,int>* v)
-        // {
-        //     std::vector<Vertex<T,int>*> vertices = graph->vertices();
+        template <typename T>
+        static std::vector<int> driver(const GraphADT<T,int>* graph, const Vertex<T,int>* v)
+        {
+            std::vector<int> D(graph->sizeV(), INT_MAX);
+            D[v->i] = 0;
 
-        //     static std::map<Vertex<T,int>*,int> D;
-        //     for (auto & i : vertices)
-        //     {
-        //         if (i == v) D[i] = 0;
-        //         else D[i] = INT_MAX;
-        //     }
+            if (graph->sizeV() > 10) return D;
 
-        //     std::priority_queue<std::pair<Vertex<T,int>*,int>, std::vector<std::pair<Vertex<T,int>*,int>>, Greater<T>> Q;
-        //     for (auto & i : D)
-        //         Q.push(std::pair<Vertex<T,int>*,int>(i.first,i.second));
+            std::cout << "======= Najkrotsza sciezka od " << v->element << " =======\nPoczatek: { ";
+            for (int i = 0; i < D.size(); i++)
+                std::cout << static_cast<char>('a' + i) << "=" << D[i] << ' ';
+            std::cout << '}' << std::endl;
 
-        //     while (!Q.empty())
-        //     {
-        //         std::pair<Vertex<T,int>*,int> u = Q.top();
-        //         Q.pop();
+            auto compare = [D](const Vertex<T,int>* v, const Vertex<T,int>* u) { return D[v->i] > D[u->i]; };
+            
+            std::priority_queue<const Vertex<T,int>*, std::vector<const Vertex<T,int>*>, decltype(compare)> Q(compare);
+            for (auto & i : graph->vertices())
+                Q.push(i);
 
-        //         for (auto & i : graph->incidentEdges(u.first))
-        //         {
-        //             auto z = graph->opposite(u.first, i);
-        //             if (D[u.first] + i->element < D[z])
-        //             {
-        //                 D[z] = D[u.first] + i->element;
-        //                 u.second = D[z];
-        //                 Q.push(u);
-        //             }
-        //         }
-        //     }
+            int step = 1;
 
-        //     return D;
-        // }
+            while (!Q.empty())
+            {
+                const Vertex<T,int>* u = Q.top();
+                Q.pop();
+
+                for (auto & i : graph->incidentEdges(u))
+                {
+                    auto z = graph->opposite(u, i);
+                    if (D[u->i] + i->element < D[z->i])
+                    {
+                        D[z->i] = D[u->i] + i->element;
+                        Q.push(u);
+                        std::cout << "       " << step++ <<": { ";
+                        for (int i = 0; i < D.size(); i++)
+                            std::cout << static_cast<char>('a' + i) << "=" << D[i] << ' ';
+                        std::cout << '}' << std::endl;
+                    }
+                }
+            }
+
+            return D;
+        }
 
         template <typename T>
         static std::vector<int> shortestPath(const GraphADT<T,int>* graph, const Vertex<T,int>* v)
