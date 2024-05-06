@@ -50,7 +50,7 @@ struct AdjacencyListVertex : public Vertex<T,W>
         return *this;
     }
 
-    std::list<AdjacencyListEdge<T,W>*> I;
+    std::vector<Edge<T,W>*> I;
 };
 
 template <typename T, typename W>
@@ -72,8 +72,8 @@ struct AdjacencyListEdge : Edge<T,W>
         return *this;
     }
 
-    typename std::list<AdjacencyListEdge<T, W>*>::iterator iteratorIv;
-    typename std::list<AdjacencyListEdge<T, W>*>::iterator iteratorIw;
+    typename std::vector<Edge<T, W>*>::iterator iteratorIv;
+    typename std::vector<Edge<T, W>*>::iterator iteratorIw;
 };
 
 template <typename T, typename W>
