@@ -28,51 +28,75 @@
 template <typename T, typename W>
 struct AdjacencyMatrixEdge;
 
+/// @brief Klasa wierzcholka grafu w reprezentacji macierzy sasiadow.
+/// @tparam T typ danych na wierzcholkach grafu
+/// @tparam W typ danych na krawedziach grafu
 template <typename T, typename W>
 struct AdjacencyMatrixVertex : public Vertex<T,W>
 {
-    public:
-        AdjacencyMatrixVertex(const T& element):
-            Vertex<T,W>(element) {}
+    /// @brief Podstawowy konstruktor wierzcholka.
+    /// @param element wartosc na wierzcholku
+    AdjacencyMatrixVertex(const T& element):
+        Vertex<T,W>(element) {}
 
-        AdjacencyMatrixVertex(const AdjacencyMatrixVertex<T,W>& other):
-            Vertex<T,W>(other), Aindex{other.Aindex} {}
+    /// @brief Konstruktor kopiujacy.
+    /// @param other obiekt do skopiowania
+    AdjacencyMatrixVertex(const AdjacencyMatrixVertex<T,W>& other):
+        Vertex<T,W>(other), Aindex{other.Aindex} {}
 
-        AdjacencyMatrixVertex<T,W>& operator=(const AdjacencyMatrixVertex<T,W>& other)
-        {
-            if (this == &other)
-                return *this;
-            Vertex<T,W>::operator=(other);
-            Aindex = other.Aindex;
+    /// @brief Przeciazenie operatora kopiujacego-przypisywania
+    /// @param other obiekt do skopiowania
+    /// @return Zwraca skopiowany wierzcholek.
+    AdjacencyMatrixVertex<T,W>& operator=(const AdjacencyMatrixVertex<T,W>& other)
+    {
+        if (this == &other)
             return *this;
-        }
-        
-        sizeType Aindex;
+        Vertex<T,W>::operator=(other);
+        Aindex = other.Aindex;
+        return *this;
+    }
+    
+    sizeType Aindex;
 };
 
+/// @brief Klasa krawedzi grafu w reprezentacji macierzy sasiadow.
+/// @tparam T typ danych na wierzcholkach grafu
+/// @tparam W typ danych na krawedziach grafu
 template <typename T, typename W>
 struct AdjacencyMatrixEdge : public Edge<T,W>
 {
-    public:
-        AdjacencyMatrixEdge(Vertex<T,W>* v, Vertex<T,W>* w, const W& element):
-            Edge<T,W>(v, w, element) {}
+    /// @brief Podstawowy konstruktor krawedzi.
+    /// @param v referencja do jednego wierzcholka koncowego
+    /// @param w referencja do drugiego wierzcholka koncowego
+    /// @param element wartosc na krawedzi
+    AdjacencyMatrixEdge(Vertex<T,W>* v, Vertex<T,W>* w, const W& element):
+        Edge<T,W>(v, w, element) {}
 
-        AdjacencyMatrixEdge(const AdjacencyMatrixEdge<T,W>& other):
-            Edge<T,W>(other) {}
-
-        AdjacencyMatrixEdge<T,W>& operator=(const AdjacencyMatrixEdge<T,W>& other)
-        {
-            if (this == &other)
-                return *this;
-            Edge<T,W>::operator=(other);
+    /// @brief Konstruktor kopiujacy.
+    /// @param other obiekt do skopiowania
+    AdjacencyMatrixEdge(const AdjacencyMatrixEdge<T,W>& other):
+        Edge<T,W>(other) {}
+    
+    /// @brief Przeciazenie operatora kopiujacego-przypisywania
+    /// @param other obiekt do skopiowania
+    /// @return Zwraca skopiowana krawedz.
+    AdjacencyMatrixEdge<T,W>& operator=(const AdjacencyMatrixEdge<T,W>& other)
+    {
+        if (this == &other)
             return *this;
-        }
+        Edge<T,W>::operator=(other);
+        return *this;
+    }
 };
 
+/// @brief Klasa implementujaca graf w reprezentacji macierzy sasiadow.
+/// @tparam T typ danych na wierzcholkach grafu
+/// @tparam W typ danych na krawedziach grafu
 template <typename T, typename W>
 class AdjacencyMatrixGraph : public GraphADT<T,W>
 {
     public:
+        /// @brief "Czysci" graf. Wynikiem dzialania jest pusta struktura.
         void clear()
         {
             V.clear();
@@ -80,18 +104,31 @@ class AdjacencyMatrixGraph : public GraphADT<T,W>
             A.clear();
         }
 
+        /// @return Zwraca rozmiar struktury przechowujacej wierzcholki.
         const sizeType sizeV() const
             { return V.size(); }
 
+        /// @return Zwraca rozmiar struktury przechowujacej krawedzi.
         const sizeType sizeE() const
             { return E.size(); }
 
+        /// @brief Funkcja zwracajaca wierzcholki koncowe krawedzi.
+        /// @param e referencja do krawedzi w grafie
+        /// @return Zwraca tablice STL o rozmiarze 2, przechowujaca referencje do wierzcholkow.
         std::array<Vertex<T,W>*,2> endVertices(const Edge<T,W>* e) const
             { return std::array<Vertex<T,W>*,2>{ e->v, e->w }; }
 
+        /// @brief Funkcja znajdujaca wierzcholek sasiedni po danej krawedzi.
+        /// @param v referencja do wierzcholka w grafie
+        /// @param e referencja do krawedzi w grafie
+        /// @return Zwraca referencje do wierzcholka sasiedniego.
         Vertex<T,W>* opposite(const Vertex<T,W>* v, const Edge<T,W>* e) const
             { return e->v == v ? e->w : e->v; }
 
+        /// @brief Sprawdza czy dane wierzcholki sa sasiednie.
+        /// @param v referencja do pierwszego wierzcholka w grafie
+        /// @param w referencja do drugiego wierzcholka w grafie
+        /// @return Zwraca prawde jezeli wierzcholki sa sasiednie. W przec
         bool areAdjacent(const Vertex<T,W>* v, const Vertex<T,W>* w) const
         {
             if (A[_amg_cvertex_ptr(v)->Aindex][_amg_cvertex_ptr(w)->Aindex]) 
@@ -99,12 +136,21 @@ class AdjacencyMatrixGraph : public GraphADT<T,W>
             return false;
         }
 
+        /// @brief Modyfikuje wartosc na wierzcholku.
+        /// @param v referencja do wierzcholka w grafie
+        /// @param x nowa wartosc
         void replace(Vertex<T,W>* const v, const T& x)
             { v->element = x; }
         
+        /// @brief Modyfikuje wartosc na krawedzi.
+        /// @param e referencja do krawedzi w grafie
+        /// @param x nowa wartosc
         void replace(Edge<T,W>* const e, const W& x)
             { e->element = x; }
 
+        /// @brief Dodaje wierzcholek do grafu.
+        /// @param x wartosc przechowywana na wierzcholku
+        /// @return Zwraca referencje do nowo utworzonego wierzcholka.
         Vertex<T,W>* insertVertex(const T& x)
         {
             V.push_back(std::unique_ptr<Vertex<T,W>>(new AdjacencyListVertex<T,W>(x)));
@@ -120,6 +166,11 @@ class AdjacencyMatrixGraph : public GraphADT<T,W>
             return V[last].get();
         }
 
+        /// @brief Dodaje krawedz do grafu.
+        /// @param v jeden z wierzcholkow koncowych nowej krawedzi
+        /// @param w drugi z wierzcholkow koncowych nowej krawedzi
+        /// @param x wartosc przechowywana na krawedzi
+        /// @return Zwraca referencje do nowo utworzonej krawedzi.
         Edge<T,W>* insertEdge(Vertex<T,W>* v, Vertex<T,W>* w, const W& x)
         {
             E.push_back(std::unique_ptr<Edge<T,W>>(new AdjacencyListEdge<T,W>(v, w, x)));
@@ -133,6 +184,8 @@ class AdjacencyMatrixGraph : public GraphADT<T,W>
              return E[last].get();
         }
 
+        /// @brief Usuwa wierzcholek z grafu.
+        /// @param v referencja do wierzcholka w grafie
         void removeVertex(Vertex<T,W>* const v)
         {
             AdjacencyMatrixVertex<T,W>* const vAM = _amg_vertex_cptr(v);
@@ -162,6 +215,8 @@ class AdjacencyMatrixGraph : public GraphADT<T,W>
             V.erase(V.begin() + v->i);
         }
 
+        /// @brief Usuwa krawedz z grafu
+        /// @param e referencja do krawedzi w grafie
         void removeEdge(Edge<T,W>* const e)
         {
             A[_amg_vertex_cptr(e->v)->Aindex][_amg_vertex_cptr(e->w)->Aindex] = nullptr;
@@ -176,6 +231,8 @@ class AdjacencyMatrixGraph : public GraphADT<T,W>
             E.erase(E.begin() + e->i);
         }
 
+        /// @param v referencja do wierzcholka w grafie
+        /// @return Zwraca std::vector przechowujacy referencje do krawedzi incydentnych.
         std::vector<Edge<T,W>*> incidentEdges(const Vertex<T,W>* const v) const
         {
             std::vector<Edge<T,W>*> vect;
@@ -184,6 +241,7 @@ class AdjacencyMatrixGraph : public GraphADT<T,W>
             return vect;
         }
         
+        /// @return Zwraca std::vector przechowujacy referencje do wszystkich wierzcholkow w grafie.
         std::vector<Vertex<T,W>*> vertices() const
         {
             std::vector<Vertex<T,W>*> vect;
@@ -192,6 +250,7 @@ class AdjacencyMatrixGraph : public GraphADT<T,W>
             return vect;
         }
 
+        /// @return Zwraca std::vector przechowujacy referencje do wszystkich krawedzi w grafie.
         std::vector<Edge<T,W>*> edges() const
         {
             std::vector<Edge<T,W>*> vect;

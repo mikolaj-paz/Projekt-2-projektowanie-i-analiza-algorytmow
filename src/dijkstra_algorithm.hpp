@@ -13,11 +13,17 @@
 #define TIME_POINT std::chrono::high_resolution_clock::now()
 #endif
 
+/// @brief Klasa implementujaca algorytm Dijkstry
 class DijkstraAlgorithm
 {
     public:
         DijkstraAlgorithm() = delete;
 
+        /// @brief Driver algorytmu Dijkstry. Prezentuje dzialanie algorytmu dla grafu z mala iloscia wierzcholkow.
+        /// @tparam T typ elementow na wierzcholkach
+        /// @param graph referencja do nieskierowanego grafu prostego z nieujemnymi wagami krawedzi
+        /// @param v referencja do wierzcholka wejsciowego
+        /// @return Zwraca std::vector<int> zawierajacy dlugosci sciezek do kazdego wektora w grafie.
         template <typename T>
         static std::vector<int> driver(const GraphADT<T,int>* graph, const Vertex<T,int>* v)
         {
@@ -62,6 +68,11 @@ class DijkstraAlgorithm
             return D;
         }
 
+        /// @brief Algorytm Dijkstry
+        /// @tparam T typ elementow na wierzcholkach
+        /// @param graph referencja do nieskierowanego grafu prostego z nieujemnymi wagami krawedzi
+        /// @param v referencja do wierzcholka wejsciowego
+        /// @return Zwraca std::vector<int> zawierajacy dlugosci sciezek do kazdego wektora w grafie.
         template <typename T>
         static std::vector<int> shortestPath(const GraphADT<T,int>* graph, const Vertex<T,int>* v)
         {

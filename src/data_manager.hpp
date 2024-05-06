@@ -21,6 +21,9 @@ class DataManager
     public:
         DataManager() = delete;
 
+        /// @brief Wypisuje zawartosc struktury, w okreslonym formacie.
+        /// @tparam C typ struktury
+        /// @param container struktura do wypisania
         template <typename C>
         static void printContainer(const C& container)
         {
@@ -30,6 +33,9 @@ class DataManager
             std::cout << '}' << std::endl;
         }
 
+        /// @brief Wypisuje zawartosc struktury przechowujacej referencje, w okreslonym formacie.
+        /// @tparam C typ struktury
+        /// @param container struktura do wypisania
         template <typename C>
         static void printPointerContainer(const C& container)
         {
@@ -39,14 +45,15 @@ class DataManager
             std::cout << '}' << std::endl;
         }
 
+        /// @brief Zapisuje dane z dwuwymiarowej tablicy do pliku z rozszerzeniem csv.
+        /// @param filePath sciezka do pliku .csv
+        /// @param data dwuwymiarowa tablica z danymi
+        /// @param rowNum liczba wierszy w tablicy
+        /// @param colNum liczba kolumn w tablicy
+        /// @param separator separator uzywany w pliku z rozszerzeniem csv
         static void saveToCSV(const std::string filePath, double** data, const int& rowNum, const int& colNum, const char& separator)
         {
             std::ofstream output(filePath);
-            // if (!output.is_open()) throw Exception("File couldn't open in saveToCSV()");
-
-            // for (int i = 0; i < header.size() - 1; i++)
-            //     output << header[i] << separator;
-            // output << header[header.size() - 1] << '\n';
 
             for (int j = 0; j < rowNum; j++)
             {
@@ -59,6 +66,13 @@ class DataManager
             output.close();
         }
 
+        /// @brief Tworzy tablice srednich czasow dzialania algorytmu Dijkstry w zaleznosci od ilosci wierzcholkow i gestosci grafu
+        /// @param graph referencja do grafu
+        /// @param N tablica zawierajaca ilosci wierzcholkow
+        /// @param sizeN rozmiar tablicy ilosci wierzcholkow
+        /// @param D tablica zawierajaca gestosci
+        /// @param sizeD rozmiar tablicy gestosci
+        /// @return Zwraca dwuwymiarowa tablice zawierajaca czasy dzialania algorytmu.
         static double** createTimesTable(GraphADT<int,int>* graph, const int N[], const int& sizeN, const double D[], const int& sizeD)
         {
             double** out = new double*[sizeD + 1];
@@ -106,6 +120,10 @@ class DataManager
             return out;
         }
 
+        /// @brief Tworzy losowy nieskierowany graf prosty.
+        /// @param graph referencja do grafu
+        /// @param verticesNumber docelowa liczba wierzcholkow
+        /// @param density docelowa gestosc grafu
         static void createRandomSimpleUndirectedGraph(GraphADT<int,int>* graph, const int& verticesNumber, const double& density)
         {
             Vertex<int,int>* vertices[verticesNumber];
@@ -160,6 +178,9 @@ class DataManager
             }
         }
 
+        /// @param min wartosc minimalna zakresu
+        /// @param max wartosc maksymalna zakresu
+        /// @return Zwraca losowa wartosc integer z zakresu (wlacznie)
         static int getRandomInt(const int& min, const int& max)
         {
             auto seed = std::chrono::system_clock::now().time_since_epoch().count();
