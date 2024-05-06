@@ -74,13 +74,13 @@ class DataManager
                 out[d + 1][0] = D[d];
                 for (int n = 0; n < sizeN; n++)
                 {
-                    for (int k = 1; k <= 20; k++)
+                    for (int k = 1; k <= 100; k++)
                     {
                         graph->clear();
                         auto ranStart = TIME_POINT;
                             DataManager::createRandomSimpleUndirectedGraph(graph, N[n], D[d]);
                         auto ranEnd = TIME_POINT;
-                        std::cout << k << ". n=" << N[n] << " d=" << D[d]
+                        std::cout << k << ". n=" << graph->sizeV() << " d=" << D[d]
                                   << "\n    Rand     = " << std::chrono::duration(ranEnd - ranStart).count() / 1E6 
                                   << " ms\n";
 
@@ -94,9 +94,9 @@ class DataManager
                         std::cout << "    Dijkstra = " << diff << " ms" << std::endl;
                         out[d + 1][n + 1] += diff;
                     }
-                    out[d + 1][n + 1] /= 20;
+                    out[d + 1][n + 1] /= 100;
                     std::cout << "==================================\n"
-                              << "n=" << N[n] << " d=" << D[d]
+                              << "n=" << graph->sizeV() << " d=" << D[d]
                               << "\navg = " << out[d + 1][n + 1] << " ms\n"
                               << "==================================\n";
                 }
@@ -116,21 +116,47 @@ class DataManager
             for (int i = 0; i < verticesNumber; i++)
                 vertices[i] = (graph->insertVertex(i + 1));
 
+            bool adjacencyMatrix[verticesNumber][verticesNumber];
+            for (auto & _ : adjacencyMatrix)
+                for (auto & i : _)
+                    i = false;
+
             const int targetEdgesNumber = density * verticesNumber * (verticesNumber - 1) / 2;
+
+            std::vector<int> availableIndexes;
+            for (int i = 0; i < verticesNumber; i++)
+                availableIndexes.push_back(i);
 
             for (int i = 0; i < targetEdgesNumber; i++)
             {
                 int v;
-                do
-                    v = getRandomInt(0, verticesNumber - 1);
-                while (incidentEdgesNum[v] == verticesNumber - 1);
+                v = getRandomInt(0, availableIndexes.size() - 1);
                 int w;
                 do
-                    w = getRandomInt(0, verticesNumber - 1);
-                while (w == v || graph->areAdjacent(vertices[v], vertices[w]));
-                graph->insertEdge(vertices[v], vertices[w], getRandomInt(1, INT_MAX - 1));
-                ++incidentEdgesNum[v];
-                ++incidentEdgesNum[w];
+                    w = getRandomInt(0, availableIndexes.size() - 1);
+                while (w == v || adjacencyMatrix[availableIndexes[v]][availableIndexes[w]]);
+
+                graph->insertEdge(vertices[availableIndexes[v]], vertices[availableIndexes[w]], getRandomInt(1, INT_MAX - 1));
+                adjacencyMatrix[availableIndexes[v]][availableIndexes[w]] = true;
+                adjacencyMatrix[availableIndexes[w]][availableIndexes[v]] = true;
+
+                ++incidentEdgesNum[availableIndexes[v]];
+                ++incidentEdgesNum[availableIndexes[w]];
+
+                if (v > w)
+                {
+                    if (incidentEdgesNum[availableIndexes[v]] == verticesNumber - 1)
+                        availableIndexes.erase(availableIndexes.begin() + v);
+                    if (incidentEdgesNum[availableIndexes[w]] == verticesNumber - 1)
+                        availableIndexes.erase(availableIndexes.begin() + w);
+                }
+                else
+                {
+                    if (incidentEdgesNum[availableIndexes[w]] == verticesNumber - 1)
+                        availableIndexes.erase(availableIndexes.begin() + w);
+                    if (incidentEdgesNum[availableIndexes[v]] == verticesNumber - 1)
+                        availableIndexes.erase(availableIndexes.begin() + v);
+                }
             }
         }
 
